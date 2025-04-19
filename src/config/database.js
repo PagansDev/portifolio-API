@@ -5,21 +5,29 @@ let sequelize;
 
 // Verifica se está em produção
 if (process.env.NODE_ENV === 'production') {
-  // Usa a URL de conexão do Railway
-  sequelize = new Sequelize(process.env.MYSQL_URL || process.env.DATABASE_URL, {
-    dialect: 'mysql',
-    logging: false,
-    define: {
-      timestamps: true,
-      underscored: false,
-      freezeTableName: true,
-    },
-    dialectOptions: {
-      ssl: {
-        rejectUnauthorized: true,
+  // Usa as variáveis do Railway MySQL
+  sequelize = new Sequelize(
+    process.env.MYSQL_DATABASE || 'railway',
+    process.env.MYSQLUSER || 'root',
+    process.env.MYSQL_ROOT_PASSWORD,
+    {
+      host: process.env.MYSQLHOST,
+      port: process.env.MYSQLPORT || 3306,
+      dialect: 'mysql',
+      logging: false,
+      define: {
+        timestamps: true,
+        underscored: false,
+        freezeTableName: true,
       },
-    },
-  });
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
+    }
+  );
 } else {
   // Configuração para desenvolvimento local
   sequelize = new Sequelize(
@@ -39,5 +47,27 @@ if (process.env.NODE_ENV === 'production') {
     }
   );
 }
+
+// Teste de conexão
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Conexão com o banco de dados estabelecida com sucesso.');
+    console.log('Variáveis de ambiente disponíveis:', {
+      database: process.env.MYSQL_DATABASE,
+      user: process.env.MYSQLUSER,
+      host: process.env.MYSQLHOST,
+      port: process.env.MYSQLPORT,
+    });
+  })
+  .catch((err) => {
+    console.error('Não foi possível conectar ao banco de dados:', err);
+    console.error('Detalhes da configuração:', {
+      database: process.env.MYSQL_DATABASE,
+      user: process.env.MYSQLUSER,
+      host: process.env.MYSQLHOST,
+      port: process.env.MYSQLPORT,
+    });
+  });
 
 module.exports = sequelize;
