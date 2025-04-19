@@ -5,38 +5,37 @@ let sequelize;
 
 // Verifica se está em produção
 if (process.env.NODE_ENV === 'production') {
-  console.log(
-    'Conectando ao MySQL em produção com as seguintes configurações:',
-    {
-      database: process.env.MYSQL_DATABASE,
-      user: process.env.MYSQLUSER,
-      host: process.env.MYSQLHOST,
-      port: process.env.MYSQLPORT,
-    }
-  );
+  // Construir a URL do MySQL manualmente
+  const dbUrl = `mysql://${process.env.MYSQLUSER}:${process.env.MYSQL_ROOT_PASSWORD}@${process.env.MYSQLHOST}:${process.env.MYSQLPORT}/${process.env.MYSQL_DATABASE}`;
 
-  sequelize = new Sequelize(
-    process.env.MYSQL_DATABASE,
-    process.env.MYSQLUSER,
-    process.env.MYSQL_ROOT_PASSWORD,
-    {
-      host: process.env.MYSQLHOST,
-      port: process.env.MYSQLPORT,
-      dialect: 'mysql',
-      logging: false,
-      define: {
-        timestamps: true,
-        underscored: false,
-        freezeTableName: true,
+  console.log('Tentando conectar ao MySQL com as seguintes configurações:', {
+    database: process.env.MYSQL_DATABASE,
+    user: process.env.MYSQLUSER,
+    host: process.env.MYSQLHOST,
+    port: process.env.MYSQLPORT,
+  });
+
+  sequelize = new Sequelize(dbUrl, {
+    dialect: 'mysql',
+    logging: true, // Habilitando logs para debug
+    define: {
+      timestamps: true,
+      underscored: false,
+      freezeTableName: true,
+    },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
       },
-      dialectOptions: {
-        ssl: {
-          require: true,
-          rejectUnauthorized: false,
-        },
-      },
-    }
-  );
+    },
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
+  });
 } else {
   // Configuração para desenvolvimento local
   sequelize = new Sequelize(
@@ -66,14 +65,14 @@ sequelize
   .catch((err) => {
     console.error('Não foi possível conectar ao banco de dados:', err);
     console.error('Ambiente:', process.env.NODE_ENV);
-    console.error('Variáveis MySQL disponíveis:', {
+    console.error('Detalhes da configuração:', {
       database: process.env.MYSQL_DATABASE,
       user: process.env.MYSQLUSER,
+      host: process.env.MYSQLHOST,
+      port: process.env.MYSQLPORT,
       password: process.env.MYSQL_ROOT_PASSWORD
         ? '[DEFINIDA]'
         : '[NÃO DEFINIDA]',
-      host: process.env.MYSQLHOST,
-      port: process.env.MYSQLPORT,
     });
   });
 
