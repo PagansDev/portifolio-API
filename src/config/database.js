@@ -5,29 +5,32 @@ let sequelize;
 
 // Verifica se está em produção
 if (process.env.NODE_ENV === 'production') {
-  // Usa as variáveis do Railway MySQL
-  sequelize = new Sequelize(
-    process.env.MYSQL_DATABASE || 'railway',
-    process.env.MYSQLUSER || 'root',
-    process.env.MYSQL_ROOT_PASSWORD,
-    {
-      host: process.env.MYSQLHOST,
-      port: process.env.MYSQLPORT || 3306,
-      dialect: 'mysql',
-      logging: false,
-      define: {
-        timestamps: true,
-        underscored: false,
-        freezeTableName: true,
+  // Usa a URL do MySQL do Railway
+  const mysqlUrl = process.env.MYSQL_URL || process.env.MYSQL_PUBLIC_URL;
+
+  if (!mysqlUrl) {
+    console.error('URL do MySQL não encontrada nas variáveis de ambiente!');
+    console.error('Variáveis disponíveis:', process.env);
+    throw new Error('URL do MySQL não configurada');
+  }
+
+  console.log('Tentando conectar ao MySQL com URL:', mysqlUrl);
+
+  sequelize = new Sequelize(mysqlUrl, {
+    dialect: 'mysql',
+    logging: false,
+    define: {
+      timestamps: true,
+      underscored: false,
+      freezeTableName: true,
+    },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
       },
-      dialectOptions: {
-        ssl: {
-          require: true,
-          rejectUnauthorized: false,
-        },
-      },
-    }
-  );
+    },
+  });
 } else {
   // Configuração para desenvolvimento local
   sequelize = new Sequelize(
@@ -53,16 +56,13 @@ sequelize
   .authenticate()
   .then(() => {
     console.log('Conexão com o banco de dados estabelecida com sucesso.');
-    console.log('Variáveis de ambiente disponíveis:', {
-      database: process.env.MYSQL_DATABASE,
-      user: process.env.MYSQLUSER,
-      host: process.env.MYSQLHOST,
-      port: process.env.MYSQLPORT,
-    });
   })
   .catch((err) => {
     console.error('Não foi possível conectar ao banco de dados:', err);
-    console.error('Detalhes da configuração:', {
+    console.error('Ambiente:', process.env.NODE_ENV);
+    console.error('Variáveis MySQL disponíveis:', {
+      url: process.env.MYSQL_URL,
+      publicUrl: process.env.MYSQL_PUBLIC_URL,
       database: process.env.MYSQL_DATABASE,
       user: process.env.MYSQLUSER,
       host: process.env.MYSQLHOST,
