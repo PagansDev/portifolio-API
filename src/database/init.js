@@ -8,10 +8,7 @@ async function initializeDatabase() {
   try {
     // Cria uma conexão sem especificar o banco de dados
     connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      port: process.env.DB_PORT,
+      DATABASE: process.env.DATABASE_URL
     });
 
     console.log('Conectado ao servidor MySQL');
