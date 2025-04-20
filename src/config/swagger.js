@@ -135,8 +135,14 @@ const options = {
         },
       },
     },
+    tags: [
+      {
+        name: 'Projects',
+        description: 'Operações relacionadas a projetos',
+      },
+    ],
   },
-  apis: ['./src/routes/*.js'], // Arquivos com as anotações do Swagger
+  apis: ['./src/routes.js'], // Caminho correto para o arquivo de rotas
 };
 
 const swaggerSpecs = swaggerJsdoc(options);
