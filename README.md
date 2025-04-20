@@ -1,147 +1,63 @@
-# API de Portfólio
+# Portfólio API
 
-API RESTful desenvolvida em Node.js para gerenciar projetos de um portfólio pessoal. Permite operações CRUD (Create, Read, Update, Delete) para projetos, com suporte a MySQL e documentação Swagger.
+API para gerenciamento de portfólio profissional, desenvolvida com Node.js, Express e MySQL.
 
-## 🚀 Tecnologias
+## Tecnologias Utilizadas
 
 - Node.js
 - Express
 - MySQL
-- Sequelize ORM
-- Swagger UI
-- Cors
+- Sequelize (ORM)
+- Swagger (Documentação)
+- Railway (Deploy)
 
-## 📋 Pré-requisitos
+## Configuração do Ambiente
 
-- Node.js (versão 14 ou superior)
-- MySQL (versão 5.7 ou superior)
+### Variáveis de Ambiente
 
-## 🔧 Instalação Local
+O projeto utiliza as seguintes variáveis de ambiente:
 
-1. Clone o repositório
+- `DATABASE_URL`: URL completa de conexão com o banco de dados MySQL
+- `PORT`: Porta em que o servidor irá rodar (gerenciada automaticamente pelo Railway)
 
-```bash
-git clone https://github.com/pagansdev/portfolio-api.git
-cd portfolio-api
-```
+### Deploy no Railway
 
-2. Instale as dependências
+1. Faça login na sua conta do Railway
+2. Crie um novo projeto
+3. Adicione um serviço MySQL
+4. No serviço MySQL, clique em "Connect" e copie a URL de conexão
+5. No seu projeto, adicione a variável `DATABASE_URL` com a URL copiada
+6. Conecte seu repositório GitHub ao projeto
+7. O Railway fará o deploy automático
 
-```bash
-npm install
-```
+## Documentação da API
 
-3. Configure as variáveis de ambiente
+A documentação da API está disponível em `/api-docs` após o deploy. Ela foi criada usando Swagger e contém todas as rotas disponíveis, seus parâmetros e exemplos de uso.
 
-```bash
-# Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
-PORT=3000
-DB_HOST=localhost
-DB_USER=seu_usuario
-DB_PASS=sua_senha
-DB_NAME=portfolio
-DB_PORT=3306
-```
-
-4. Inicialize o banco de dados
-
-```bash
-npm run init-db
-```
-
-## 🚀 Executando
-
-Para desenvolvimento:
-
-```bash
-npm run dev
-```
-
-Para produção:
-
-```bash
-npm start
-```
-
-## 📚 Documentação da API
-
-Após iniciar o servidor, acesse a documentação Swagger em:
+## Estrutura do Projeto
 
 ```
-http://localhost:3000/api-docs
+src/
+├── config/
+│   ├── database.js    # Configuração do banco de dados
+│   └── swagger.js     # Configuração do Swagger
+├── controllers/       # Controladores da aplicação
+├── models/           # Modelos do Sequelize
+├── routes/           # Rotas da API
+└── server.js         # Arquivo principal da aplicação
 ```
 
-### Endpoints Disponíveis
+## Funcionalidades
 
-- `GET /projects` - Lista todos os projetos
-- `GET /projects/:id` - Busca um projeto específico
-- `POST /projects` - Cria um novo projeto
-- `PUT /projects/:id` - Atualiza um projeto existente
-- `DELETE /projects/:id` - Remove um projeto
+- CRUD de projetos
+- CRUD de habilidades
+- CRUD de experiências
+- Documentação automática da API
+- CORS configurado
+- SSL habilitado
 
-### Exemplo de Projeto
+## Observações
 
-```json
-{
-  "name": "Meu Projeto",
-  "thumbnailUrl": "https://exemplo.com/imagem.jpg",
-  "repositoryUrl": "https://github.com/usuario/projeto",
-  "siteUrl": "https://teste.com",
-  "technologies": ["Node.js", "MySQL"],
-  "description": "Uma aplicação web de teste"
-}
-```
-
-## 🌐 Deploy
-
-Esta API está configurada para deploy no Railway. Siga as instruções abaixo para fazer o deploy:
-
-1. Crie uma conta no [Railway](https://railway.app)
-
-2. Instale o Railway CLI:
-
-```bash
-npm i -g @railway/cli
-```
-
-3. Faça login no Railway:
-
-```bash
-railway login
-```
-
-4. Inicialize o projeto:
-
-```bash
-railway init
-```
-
-5. Provisione um banco de dados MySQL:
-
-```bash
-railway add mysql
-```
-
-6. Configure as variáveis de ambiente no Railway:
-
-- `NODE_ENV=production`
-- `DB_HOST` (fornecido pelo Railway)
-- `DB_USER` (fornecido pelo Railway)
-- `DB_PASS` (fornecido pelo Railway)
-- `DB_NAME` (fornecido pelo Railway)
-- `DB_PORT` (fornecido pelo Railway)
-- `API_URL` (URL da sua API após o deploy)
-
-7. Faça o deploy:
-
-```bash
-railway up
-```
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## ✨ Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
+- O projeto está configurado para rodar exclusivamente em produção no Railway
+- Todas as conexões com o banco de dados são feitas via SSL
+- A documentação da API é atualizada automaticamente com as alterações no código
