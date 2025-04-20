@@ -30,11 +30,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 // Rotas
 app.use(routes);
 
-// Sincronização do banco de dados com force:true em produção apenas na primeira vez
+// Sincronização do banco de dados
 sequelize
-  .sync({ force: process.env.NODE_ENV === 'production' })
+  .sync()
   .then(() => {
-    console.log('Banco de dados sincronizado e tabelas criadas');
+    console.log('Banco de dados sincronizado com sucesso');
   })
   .catch((error) => {
     console.error('Erro ao sincronizar banco de dados:', error);
