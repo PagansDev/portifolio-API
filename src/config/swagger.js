@@ -8,8 +8,8 @@ const options = {
       version: '1.0.0',
       description: 'API para gerenciamento de projetos de portfólio',
       contact: {
-        name: 'Seu Nome',
-        email: 'seu.email@exemplo.com',
+        name: 'Paulo Gabriel Neves Santos',
+        email: 'PauloGabrielNeves@hotmail.com',
       },
     },
     servers: [
