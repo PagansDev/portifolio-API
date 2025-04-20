@@ -6,10 +6,22 @@ const routes = require('./routes');
 const sequelize = require('./config/database');
 const swaggerSpecs = require('./config/swagger');
 
+// Importar os modelos para garantir que sejam registrados
+require('./models/Project');
+
 const app = express();
 
-// Middleware
-app.use(cors());
+// Configuração do CORS
+app.use(
+  cors({
+    origin: '*', // Permite todas as origens
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'], // Headers permitidos
+    credentials: true, // Permite credenciais
+    optionsSuccessStatus: 200, // Status de sucesso para requisições OPTIONS
+  })
+);
+
 app.use(express.json());
 
 // Documentação Swagger
@@ -18,11 +30,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 // Rotas
 app.use(routes);
 
-// Sincronização do banco de dados
+// Sincronização do banco de dados com force:true em produção apenas na primeira vez
 sequelize
-  .sync()
+  .sync({ force: process.env.NODE_ENV === 'production' })
   .then(() => {
-    console.log('Banco de dados sincronizado');
+    console.log('Banco de dados sincronizado e tabelas criadas');
   })
   .catch((error) => {
     console.error('Erro ao sincronizar banco de dados:', error);

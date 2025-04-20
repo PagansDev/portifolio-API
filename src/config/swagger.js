@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'API de Portfólio',
       version: '1.0.0',
-      description: 'API para gerenciamento de projetos do portfólio',
+      description: 'API para gerenciamento de projetos de portfólio',
       contact: {
         name: 'Seu Nome',
         email: 'seu.email@exemplo.com',
@@ -14,11 +14,14 @@ const options = {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3000',
+        url:
+          process.env.NODE_ENV === 'production'
+            ? '/' // URL base em produção (Railway)
+            : 'http://localhost:3000', // URL local para desenvolvimento
         description:
           process.env.NODE_ENV === 'production'
-            ? 'Servidor de produção'
-            : 'Servidor de desenvolvimento',
+            ? 'Servidor de Produção'
+            : 'Servidor Local',
       },
     ],
     components: {
@@ -133,9 +136,9 @@ const options = {
       },
     },
   },
-  apis: ['./src/routes.js'],
+  apis: ['./src/routes/*.js'], // Arquivos com as anotações do Swagger
 };
 
-const specs = swaggerJsdoc(options);
+const swaggerSpecs = swaggerJsdoc(options);
 
-module.exports = specs;
+module.exports = swaggerSpecs;
