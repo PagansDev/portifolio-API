@@ -1,5 +1,7 @@
 const express = require('express');
 const ProjectController = require('./controllers/ProjectController');
+const AuthController = require('./controllers/AuthController');
+const authMiddleware = require('./middlewares/auth');
 
 const routes = express.Router();
 
@@ -68,7 +70,7 @@ routes.get('/projects/:id', ProjectController.show);
  *       400:
  *         description: Erro na criação do projeto
  */
-routes.post('/projects', ProjectController.store);
+routes.post('/projects', authMiddleware, ProjectController.store);
 
 /**
  * @swagger
@@ -99,7 +101,7 @@ routes.post('/projects', ProjectController.store);
  *       404:
  *         description: Projeto não encontrado
  */
-routes.put('/projects/:id', ProjectController.update);
+routes.put('/projects/:id', authMiddleware, ProjectController.update);
 
 /**
  * @swagger
@@ -120,6 +122,10 @@ routes.put('/projects/:id', ProjectController.update);
  *       404:
  *         description: Projeto não encontrado
  */
-routes.delete('/projects/:id', ProjectController.destroy);
+routes.delete('/projects/:id', authMiddleware, ProjectController.destroy);
+
+// Rotas públicas
+routes.post('/register', AuthController.register);
+routes.post('/login', AuthController.login);
 
 module.exports = routes;

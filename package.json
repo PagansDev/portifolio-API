@@ -1,23 +1,24 @@
 {
   "name": "portfolio-api",
   "version": "1.0.0",
-  "description": "API para gerenciamento de projetos do portfólio",
+  "description": "API para gerenciamento de portfólio profissional",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "init-db": "node src/database/init.js"
+    "dev": "nodemon src/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mysql2": "^3.6.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "sequelize": "^6.33.0",
-    "swagger-ui-express": "^5.0.0",
-    "swagger-jsdoc": "^6.2.8"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mysql2": "^3.2.0",
+    "sequelize": "^6.31.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^2.0.22"
   }
 } 

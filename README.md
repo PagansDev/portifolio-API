@@ -16,12 +16,14 @@ Com a aplicação rodando, basta consumi-la no front-end com seus componentes di
 - Sequelize (ORM)
 - Swagger (Documentação)
 - Railway (Deploy)
+- JWT (Autenticação)
 
 ### Variáveis de Ambiente
 
 O projeto utiliza as seguintes variáveis de ambiente:
 
 - `DATABASE_URL`: URL completa de conexão com o banco de dados MySQL
+- `JWT_SECRET`: Chave secreta para geração de tokens JWT (crie uma string aleatória)
 
 ## 🔧 Instalação Local
 
@@ -37,6 +39,7 @@ cd portfolio-api
 ```bash
 # Crie um arquivo .env na raiz do projeto com o seguinte conteúdo:
 DATABASE_URL = ""
+JWT_SECRET = "sua_chave_secreta_aqui"
 ```
 
 3. Suba um repositório no seu github com esse projeto.
@@ -48,11 +51,42 @@ DATABASE_URL = ""
 3. Adicione um serviço MySQL
 4. No serviço MySQL, clique em "Connect" e copie a URL de conexão
 5. Conecte seu repositório GitHub ao projeto
-6. No seu projeto, clique no seu repositório, adicione a variável `DATABASE_URL` com a URL copiada
+6. No seu projeto, clique no seu repositório, adicione as variáveis:
+   - `DATABASE_URL`: URL de conexão copiada do serviço MySQL em formato de template string ${{...}}
+   - `JWT_SECRET`: Uma string aleatória para assinar os tokens
 7. No topo do seu painel, deverá ter a opção de aplicar as mudanças e fazer deploy
 8. O Railway fará o deploy automático após isso
 9. Para utilização, deverá ir no painel da railway do seu projeto, clicar no seu repositório e navegar para Settings>Networking e clicar em Generate Domain.
-10. Com seu dominio publico gerado basta utilizar no seu portifólio, poderá cadastrar novos projetos utilizando o swagger(/api-docs) ou um serviço como Postman, e até mesmo criando um painel de Admin no seu portifólio.
+
+## Autenticação
+
+A API utiliza autenticação JWT para proteger as operações de criação, atualização e exclusão de projetos. Para obter acesso:
+
+1. Registre um usuário:
+
+```bash
+POST /register
+{
+  "username": "seu_usuario",
+  "password": "sua_senha"
+}
+```
+
+2. Faça login para obter o token:
+
+```bash
+POST /login
+{
+  "username": "seu_usuario",
+  "password": "sua_senha"
+}
+```
+
+3. Use o token retornado no header de todas as requisições protegidas:
+
+```bash
+Authorization: Bearer seu_token_jwt
+```
 
 ## Documentação da API
 
@@ -66,6 +100,7 @@ src/
 │   ├── database.js    # Configuração do banco de dados
 │   └── swagger.js     # Configuração do Swagger
 ├── controllers/       # Controladores da aplicação
+├── middlewares/       # Middlewares (autenticação)
 ├── models/           # Modelos do Sequelize
 ├── routes/           # Rotas da API
 └── server.js         # Arquivo principal da aplicação
@@ -74,6 +109,7 @@ src/
 ## Funcionalidades
 
 - CRUD de projetos
+- Autenticação JWT
 - Documentação automática da API
 - CORS configurado
 - SSL habilitado
@@ -83,3 +119,4 @@ src/
 - O projeto está configurado para rodar exclusivamente em produção no Railway
 - Todas as conexões com o banco de dados são feitas via SSL
 - A documentação da API é atualizada automaticamente com as alterações no código
+- As operações de criação, atualização e exclusão de projetos requerem autenticação
