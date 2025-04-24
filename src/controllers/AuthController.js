@@ -1,58 +1,62 @@
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-class AuthController {
+module.exports = {
   async register(req, res) {
     try {
-      const { username, password } = req.body;
+      const { username, password, registrationKey } = req.body;
 
-      if (await User.findOne({ where: { username } })) {
+      // Verifica se a chave de registro está correta
+      if (registrationKey !== process.env.REGISTRATION_KEY) {
+        return res.status(401).json({ error: 'Chave de registro inválida' });
+      }
+
+      // Verifica se o usuário já existe
+      const userExists = await User.findOne({ where: { username } });
+      if (userExists) {
         return res.status(400).json({ error: 'Usuário já existe' });
       }
 
-      const user = await User.create({ username, password });
-
-      return res.status(201).json({
-        user: {
-          id: user.id,
-          username: user.username,
-        },
-        token: jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-          expiresIn: '7d',
-        }),
+      // Cria o usuário
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await User.create({
+        username,
+        password: hashedPassword,
       });
-    } catch (err) {
+
+      return res
+        .status(201)
+        .json({ message: 'Usuário registrado com sucesso' });
+    } catch (error) {
       return res.status(400).json({ error: 'Erro ao registrar usuário' });
     }
-  }
+  },
 
   async login(req, res) {
     try {
       const { username, password } = req.body;
 
+      // Busca o usuário
       const user = await User.findOne({ where: { username } });
-
       if (!user) {
-        return res.status(401).json({ error: 'Usuário não encontrado' });
+        return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
-      if (!(await user.checkPassword(password))) {
-        return res.status(401).json({ error: 'Senha inválida' });
+      // Verifica a senha
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
-      return res.json({
-        user: {
-          id: user.id,
-          username: user.username,
-        },
-        token: jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-          expiresIn: '7d',
-        }),
+      // Gera o token
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+        expiresIn: '1d',
       });
-    } catch (err) {
+
+      return res.json({ token });
+    } catch (error) {
       return res.status(400).json({ error: 'Erro ao fazer login' });
     }
-  }
-}
-
-module.exports = new AuthController();
+  },
+};

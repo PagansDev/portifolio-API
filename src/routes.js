@@ -7,6 +7,72 @@ const routes = express.Router();
 
 /**
  * @swagger
+ * /register:
+ *   post:
+ *     summary: Registra um novo usuário (apenas para o dono da aplicação)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *               - registrationKey
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "usuario"
+ *               password:
+ *                 type: string
+ *                 example: "senha123"
+ *               registrationKey:
+ *                 type: string
+ *                 example: "chave-secreta-de-registro"
+ *     responses:
+ *       201:
+ *         description: Usuário registrado com sucesso
+ *       400:
+ *         description: Erro ao registrar usuário
+ *       401:
+ *         description: Chave de registro inválida
+ */
+routes.post('/register', AuthController.register);
+
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Autentica um usuário
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "usuario"
+ *               password:
+ *                 type: string
+ *                 example: "senha123"
+ *     responses:
+ *       200:
+ *         description: Login realizado com sucesso
+ *       401:
+ *         description: Credenciais inválidas
+ */
+routes.post('/login', AuthController.login);
+
+/**
+ * @swagger
  * /projects:
  *   get:
  *     summary: Lista todos os projetos
@@ -54,6 +120,8 @@ routes.get('/projects/:id', ProjectController.show);
  *   post:
  *     summary: Cria um novo projeto
  *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -69,6 +137,8 @@ routes.get('/projects/:id', ProjectController.show);
  *               $ref: '#/components/schemas/Project'
  *       400:
  *         description: Erro na criação do projeto
+ *       401:
+ *         description: Não autorizado
  */
 routes.post('/projects', authMiddleware, ProjectController.store);
 
@@ -78,6 +148,8 @@ routes.post('/projects', authMiddleware, ProjectController.store);
  *   put:
  *     summary: Atualiza um projeto existente
  *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -100,6 +172,8 @@ routes.post('/projects', authMiddleware, ProjectController.store);
  *               $ref: '#/components/schemas/Project'
  *       404:
  *         description: Projeto não encontrado
+ *       401:
+ *         description: Não autorizado
  */
 routes.put('/projects/:id', authMiddleware, ProjectController.update);
 
@@ -109,6 +183,8 @@ routes.put('/projects/:id', authMiddleware, ProjectController.update);
  *   delete:
  *     summary: Remove um projeto
  *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -121,11 +197,9 @@ routes.put('/projects/:id', authMiddleware, ProjectController.update);
  *         description: Projeto removido com sucesso
  *       404:
  *         description: Projeto não encontrado
+ *       401:
+ *         description: Não autorizado
  */
 routes.delete('/projects/:id', authMiddleware, ProjectController.destroy);
-
-// Rotas públicas
-routes.post('/register', AuthController.register);
-routes.post('/login', AuthController.login);
 
 module.exports = routes;
