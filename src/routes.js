@@ -9,35 +9,34 @@ const routes = express.Router();
  * @swagger
  * /register:
  *   post:
- *     summary: Registra um novo usuário (apenas para o dono da aplicação)
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - password
- *               - registrationKey
- *             properties:
- *               username:
- *                 type: string
- *                 example: "usuario"
- *               password:
- *                 type: string
- *                 example: "senha123"
- *               registrationKey:
- *                 type: string
- *                 example: "chave-secreta-de-registro"
+ *     tags:
+ *       - Auth
+ *     summary: Registra um novo usuário
+ *     parameters:
+ *       - in: body
+ *         name: user
+ *         required: true
+ *         schema:
+ *           type: object
+ *           required:
+ *             - username
+ *             - password
+ *             - registrationKey
+ *           properties:
+ *             username:
+ *               type: string
+ *               example: "usuario"
+ *             password:
+ *               type: string
+ *               example: "senha123"
+ *             registrationKey:
+ *               type: string
+ *               example: "chave-secreta"
  *     responses:
  *       201:
  *         description: Usuário registrado com sucesso
  *       400:
  *         description: Erro ao registrar usuário
- *       401:
- *         description: Chave de registro inválida
  */
 routes.post('/register', AuthController.register);
 
@@ -45,27 +44,33 @@ routes.post('/register', AuthController.register);
  * @swagger
  * /login:
  *   post:
+ *     tags:
+ *       - Auth
  *     summary: Autentica um usuário
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - password
- *             properties:
- *               username:
- *                 type: string
- *                 example: "usuario"
- *               password:
- *                 type: string
- *                 example: "senha123"
+ *     parameters:
+ *       - in: body
+ *         name: credentials
+ *         required: true
+ *         schema:
+ *           type: object
+ *           required:
+ *             - username
+ *             - password
+ *           properties:
+ *             username:
+ *               type: string
+ *               example: "usuario"
+ *             password:
+ *               type: string
+ *               example: "senha123"
  *     responses:
  *       200:
  *         description: Login realizado com sucesso
+ *         schema:
+ *           type: object
+ *           properties:
+ *             token:
+ *               type: string
  *       401:
  *         description: Credenciais inválidas
  */
@@ -75,17 +80,16 @@ routes.post('/login', AuthController.login);
  * @swagger
  * /projects:
  *   get:
+ *     tags:
+ *       - Projects
  *     summary: Lista todos os projetos
- *     tags: [Projects]
  *     responses:
  *       200:
  *         description: Lista de projetos retornada com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Project'
+ *         schema:
+ *           type: array
+ *           items:
+ *             $ref: '#/definitions/Project'
  */
 routes.get('/projects', ProjectController.index);
 
@@ -93,22 +97,20 @@ routes.get('/projects', ProjectController.index);
  * @swagger
  * /projects/{id}:
  *   get:
+ *     tags:
+ *       - Projects
  *     summary: Busca um projeto específico
- *     tags: [Projects]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
+ *         type: integer
  *         description: ID do projeto
  *     responses:
  *       200:
  *         description: Projeto encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Project'
+ *         schema:
+ *           $ref: '#/definitions/Project'
  *       404:
  *         description: Projeto não encontrado
  */
@@ -118,23 +120,22 @@ routes.get('/projects/:id', ProjectController.show);
  * @swagger
  * /projects:
  *   post:
+ *     tags:
+ *       - Projects
  *     summary: Cria um novo projeto
- *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProjectInput'
+ *     parameters:
+ *       - in: body
+ *         name: project
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/ProjectInput'
  *     responses:
  *       201:
  *         description: Projeto criado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Project'
+ *         schema:
+ *           $ref: '#/definitions/Project'
  *       400:
  *         description: Erro na criação do projeto
  *       401:
@@ -146,30 +147,27 @@ routes.post('/projects', authMiddleware, ProjectController.store);
  * @swagger
  * /projects/{id}:
  *   put:
+ *     tags:
+ *       - Projects
  *     summary: Atualiza um projeto existente
- *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
+ *         type: integer
  *         description: ID do projeto
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ProjectInput'
+ *       - in: body
+ *         name: project
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/ProjectInput'
  *     responses:
  *       200:
  *         description: Projeto atualizado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Project'
+ *         schema:
+ *           $ref: '#/definitions/Project'
  *       404:
  *         description: Projeto não encontrado
  *       401:
@@ -181,16 +179,16 @@ routes.put('/projects/:id', authMiddleware, ProjectController.update);
  * @swagger
  * /projects/{id}:
  *   delete:
+ *     tags:
+ *       - Projects
  *     summary: Remove um projeto
- *     tags: [Projects]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: integer
+ *         type: integer
  *         description: ID do projeto
  *     responses:
  *       204:
