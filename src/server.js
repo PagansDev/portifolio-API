@@ -6,82 +6,22 @@ const routes = require('./routes');
 const sequelize = require('./config/database');
 const swaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    swagger: '2.0',
     info: {
       title: 'Portfolio API',
       version: '1.0.0',
       description: 'API para gerenciamento de portfólio profissional',
     },
-    servers: [
-      {
-        url: process.env.API_URL || 'http://localhost:3000',
-        description: 'Servidor de desenvolvimento',
-      },
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT',
-        },
-      },
-      schemas: {
-        Project: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'integer',
-              example: 1,
-            },
-            title: {
-              type: 'string',
-              example: 'Projeto Exemplo',
-            },
-            description: {
-              type: 'string',
-              example: 'Descrição do projeto',
-            },
-            image: {
-              type: 'string',
-              example: 'https://exemplo.com/imagem.jpg',
-            },
-            link: {
-              type: 'string',
-              example: 'https://exemplo.com',
-            },
-            createdAt: {
-              type: 'string',
-              format: 'date-time',
-            },
-            updatedAt: {
-              type: 'string',
-              format: 'date-time',
-            },
-          },
-        },
-        ProjectInput: {
-          type: 'object',
-          required: ['title', 'description'],
-          properties: {
-            title: {
-              type: 'string',
-              example: 'Projeto Exemplo',
-            },
-            description: {
-              type: 'string',
-              example: 'Descrição do projeto',
-            },
-            image: {
-              type: 'string',
-              example: 'https://exemplo.com/imagem.jpg',
-            },
-            link: {
-              type: 'string',
-              example: 'https://exemplo.com',
-            },
-          },
-        },
+    host: process.env.API_URL || 'localhost:3000',
+    basePath: '/',
+    schemes: ['http', 'https'],
+    securityDefinitions: {
+      bearerAuth: {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+        description:
+          'Insira o token JWT com o prefixo Bearer. Exemplo: "Bearer {token}"',
       },
     },
     security: [
@@ -89,6 +29,63 @@ const swaggerOptions = {
         bearerAuth: [],
       },
     ],
+    definitions: {
+      Project: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'integer',
+            example: 1,
+          },
+          title: {
+            type: 'string',
+            example: 'Projeto Exemplo',
+          },
+          description: {
+            type: 'string',
+            example: 'Descrição do projeto',
+          },
+          image: {
+            type: 'string',
+            example: 'https://exemplo.com/imagem.jpg',
+          },
+          link: {
+            type: 'string',
+            example: 'https://exemplo.com',
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
+      ProjectInput: {
+        type: 'object',
+        required: ['title', 'description'],
+        properties: {
+          title: {
+            type: 'string',
+            example: 'Projeto Exemplo',
+          },
+          description: {
+            type: 'string',
+            example: 'Descrição do projeto',
+          },
+          image: {
+            type: 'string',
+            example: 'https://exemplo.com/imagem.jpg',
+          },
+          link: {
+            type: 'string',
+            example: 'https://exemplo.com',
+          },
+        },
+      },
+    },
   },
   apis: ['./src/routes.js'],
 };
