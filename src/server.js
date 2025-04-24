@@ -4,90 +4,329 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const routes = require('./routes');
 const sequelize = require('./config/database');
-const swaggerOptions = {
-  definition: {
-    swagger: '2.0',
-    info: {
-      title: 'Portfolio API',
-      version: '1.0.0',
-      description: 'API para gerenciamento de portfólio profissional',
+
+// Swagger configuration
+const swaggerDocument = {
+  swagger: '2.0',
+  info: {
+    version: '1.0.0',
+    title: 'Portfolio API',
+    description: 'API para gerenciamento de portfólio profissional',
+  },
+  host: process.env.API_URL || 'localhost:3000',
+  basePath: '/',
+  schemes: ['http', 'https'],
+  tags: [
+    {
+      name: 'Projects',
+      description: 'Endpoints para gerenciamento de projetos',
     },
-    host: process.env.API_URL || 'localhost:3000',
-    basePath: '/',
-    schemes: ['http', 'https'],
-    securityDefinitions: {
-      bearerAuth: {
-        type: 'apiKey',
-        name: 'Authorization',
-        in: 'header',
-        description:
-          'Insira o token JWT com o prefixo Bearer. Exemplo: "Bearer {token}"',
-      },
+    {
+      name: 'Auth',
+      description: 'Endpoints para autenticação',
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
-    definitions: {
-      Project: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'integer',
-            example: 1,
+  ],
+  securityDefinitions: {
+    Bearer: {
+      type: 'apiKey',
+      name: 'Authorization',
+      in: 'header',
+      description: "Adicione 'Bearer ' antes do token JWT",
+    },
+  },
+  paths: {
+    '/register': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Registra um novo usuário (apenas dono da aplicação)',
+        parameters: [
+          {
+            in: 'body',
+            name: 'body',
+            description: 'Dados do usuário',
+            required: true,
+            schema: {
+              type: 'object',
+              required: ['username', 'password', 'registrationKey'],
+              properties: {
+                username: {
+                  type: 'string',
+                  example: 'admin',
+                },
+                password: {
+                  type: 'string',
+                  example: 'senha123',
+                },
+                registrationKey: {
+                  type: 'string',
+                  example: 'chave-secreta',
+                },
+              },
+            },
           },
-          title: {
-            type: 'string',
-            example: 'Projeto Exemplo',
+        ],
+        responses: {
+          201: {
+            description: 'Usuário registrado com sucesso',
           },
-          description: {
-            type: 'string',
-            example: 'Descrição do projeto',
+          400: {
+            description: 'Erro ao registrar usuário',
           },
-          image: {
-            type: 'string',
-            example: 'https://exemplo.com/imagem.jpg',
-          },
-          link: {
-            type: 'string',
-            example: 'https://exemplo.com',
-          },
-          createdAt: {
-            type: 'string',
-            format: 'date-time',
-          },
-          updatedAt: {
-            type: 'string',
-            format: 'date-time',
+          401: {
+            description: 'Chave de registro inválida',
           },
         },
       },
-      ProjectInput: {
-        type: 'object',
-        required: ['title', 'description'],
-        properties: {
-          title: {
-            type: 'string',
-            example: 'Projeto Exemplo',
+    },
+    '/login': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Autentica um usuário',
+        parameters: [
+          {
+            in: 'body',
+            name: 'body',
+            description: 'Credenciais do usuário',
+            required: true,
+            schema: {
+              type: 'object',
+              required: ['username', 'password'],
+              properties: {
+                username: {
+                  type: 'string',
+                  example: 'admin',
+                },
+                password: {
+                  type: 'string',
+                  example: 'senha123',
+                },
+              },
+            },
           },
-          description: {
-            type: 'string',
-            example: 'Descrição do projeto',
+        ],
+        responses: {
+          200: {
+            description: 'Login realizado com sucesso',
+            schema: {
+              type: 'object',
+              properties: {
+                token: {
+                  type: 'string',
+                },
+              },
+            },
           },
-          image: {
-            type: 'string',
-            example: 'https://exemplo.com/imagem.jpg',
+          401: {
+            description: 'Credenciais inválidas',
           },
-          link: {
-            type: 'string',
-            example: 'https://exemplo.com',
+        },
+      },
+    },
+    '/projects': {
+      get: {
+        tags: ['Projects'],
+        summary: 'Lista todos os projetos',
+        responses: {
+          200: {
+            description: 'Lista de projetos retornada com sucesso',
+            schema: {
+              type: 'array',
+              items: {
+                $ref: '#/definitions/Project',
+              },
+            },
+          },
+        },
+      },
+      post: {
+        tags: ['Projects'],
+        summary: 'Cria um novo projeto',
+        security: [
+          {
+            Bearer: [],
+          },
+        ],
+        parameters: [
+          {
+            in: 'body',
+            name: 'body',
+            description: 'Dados do projeto',
+            required: true,
+            schema: {
+              $ref: '#/definitions/ProjectInput',
+            },
+          },
+        ],
+        responses: {
+          201: {
+            description: 'Projeto criado com sucesso',
+            schema: {
+              $ref: '#/definitions/Project',
+            },
+          },
+          401: {
+            description: 'Não autorizado',
+          },
+          400: {
+            description: 'Dados inválidos',
+          },
+        },
+      },
+    },
+    '/projects/{id}': {
+      get: {
+        tags: ['Projects'],
+        summary: 'Busca um projeto específico',
+        parameters: [
+          {
+            in: 'path',
+            name: 'id',
+            type: 'integer',
+            required: true,
+            description: 'ID do projeto',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Projeto encontrado',
+            schema: {
+              $ref: '#/definitions/Project',
+            },
+          },
+          404: {
+            description: 'Projeto não encontrado',
+          },
+        },
+      },
+      put: {
+        tags: ['Projects'],
+        summary: 'Atualiza um projeto',
+        security: [
+          {
+            Bearer: [],
+          },
+        ],
+        parameters: [
+          {
+            in: 'path',
+            name: 'id',
+            type: 'integer',
+            required: true,
+            description: 'ID do projeto',
+          },
+          {
+            in: 'body',
+            name: 'body',
+            description: 'Dados do projeto',
+            required: true,
+            schema: {
+              $ref: '#/definitions/ProjectInput',
+            },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Projeto atualizado com sucesso',
+            schema: {
+              $ref: '#/definitions/Project',
+            },
+          },
+          401: {
+            description: 'Não autorizado',
+          },
+          404: {
+            description: 'Projeto não encontrado',
+          },
+        },
+      },
+      delete: {
+        tags: ['Projects'],
+        summary: 'Remove um projeto',
+        security: [
+          {
+            Bearer: [],
+          },
+        ],
+        parameters: [
+          {
+            in: 'path',
+            name: 'id',
+            type: 'integer',
+            required: true,
+            description: 'ID do projeto',
+          },
+        ],
+        responses: {
+          204: {
+            description: 'Projeto removido com sucesso',
+          },
+          401: {
+            description: 'Não autorizado',
+          },
+          404: {
+            description: 'Projeto não encontrado',
           },
         },
       },
     },
   },
-  apis: ['./src/routes.js'],
+  definitions: {
+    Project: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'integer',
+          example: 1,
+        },
+        title: {
+          type: 'string',
+          example: 'Meu Projeto',
+        },
+        description: {
+          type: 'string',
+          example: 'Descrição do projeto',
+        },
+        image: {
+          type: 'string',
+          example: 'https://exemplo.com/imagem.jpg',
+        },
+        link: {
+          type: 'string',
+          example: 'https://exemplo.com/projeto',
+        },
+        createdAt: {
+          type: 'string',
+          format: 'date-time',
+        },
+        updatedAt: {
+          type: 'string',
+          format: 'date-time',
+        },
+      },
+    },
+    ProjectInput: {
+      type: 'object',
+      required: ['title', 'description'],
+      properties: {
+        title: {
+          type: 'string',
+          example: 'Meu Projeto',
+        },
+        description: {
+          type: 'string',
+          example: 'Descrição do projeto',
+        },
+        image: {
+          type: 'string',
+          example: 'https://exemplo.com/imagem.jpg',
+        },
+        link: {
+          type: 'string',
+          example: 'https://exemplo.com/projeto',
+        },
+      },
+    },
+  },
 };
 
 // Importar os modelos para garantir que sejam registrados
@@ -98,18 +337,18 @@ const app = express();
 // Configuração do CORS
 app.use(
   cors({
-    origin: '*', // Permite todas as origens
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'], // Headers permitidos
-    credentials: true, // Permite credenciais
-    optionsSuccessStatus: 200, // Status de sucesso para requisições OPTIONS
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+    optionsSuccessStatus: 200,
   })
 );
 
 app.use(express.json());
 
 // Documentação Swagger
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerOptions));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Rotas
 app.use(routes);
