@@ -3,13 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const routes = require('./routes');
-const sequelize = require('./config/database');
+const initializeDatabase = require('./database');
 
 // Swagger configuration
 const swaggerDocument = {
   swagger: '2.0',
   info: {
-    version: '1.1.6',
+    version: '1.1.8',
     title: 'Portfolio API',
     description: 'API para gerenciamento de portfólio profissional',
   },
@@ -404,7 +404,7 @@ const app = express();
 
 // Configuração do CORS - mais restritiva para produção
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*', // Idealmente, especificar a URL do frontend
+  origin: process.env.FRONTEND_URL || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Authorization'],
@@ -415,24 +415,50 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 
+// Healthcheck endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
+
 // Documentação Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Rotas
 app.use(routes);
 
-// Sincronização do banco de dados
-sequelize
-  .sync()
-  .then(() => {
-    console.log('Banco de dados sincronizado com sucesso');
-  })
-  .catch((error) => {
-    console.error('Erro ao sincronizar banco de dados:', error);
-  });
+// Função de inicialização do servidor
+const startServer = async () => {
+  try {
+    // Aguarda a inicialização do banco de dados
+    const sequelize = await initializeDatabase;
+    console.log('Banco de dados inicializado com sucesso');
 
-// Iniciar o servidor
-app.listen(process.env.PORT, () => {
-  console.log(`Servidor rodando na porta ${process.env.PORT}`);
-  console.log(`Documentação disponível em: /api-docs`);
+    // Sincroniza os modelos com o banco de dados
+    await sequelize.sync();
+    console.log('Modelos sincronizados com sucesso');
+
+    // Inicia o servidor apenas após a conexão com o banco estar estabelecida
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Servidor rodando na porta ${port}`);
+      console.log(`Documentação disponível em: /api-docs`);
+    });
+  } catch (error) {
+    console.error('Erro ao iniciar o servidor:', error);
+    process.exit(1); // Encerra o processo com erro
+  }
+};
+
+// Inicia o servidor
+startServer();
+
+// Tratamento de erros não capturados
+process.on('unhandledRejection', (error) => {
+  console.error('Erro não tratado:', error);
+  process.exit(1);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Exceção não capturada:', error);
+  process.exit(1);
 });
