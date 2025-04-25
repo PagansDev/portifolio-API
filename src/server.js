@@ -33,46 +33,40 @@ const swaggerDocument = {
       in: 'header',
       description: "Adicione 'Bearer ' antes do token JWT",
     },
+    bearerAuth: {
+      type: 'apiKey',
+      name: 'Authorization',
+      in: 'header',
+      description: 'Digite: Bearer {seu_token} para autenticação',
+    },
   },
   paths: {
     '/register': {
       post: {
-        tags: ['Auth'],
-        summary: 'Registra um novo usuário (apenas dono da aplicação)',
+        tags: ['Autenticação'],
+        summary: 'Registrar um novo usuário',
+        description: 'Cria um novo usuário com as credenciais fornecidas',
         parameters: [
           {
             in: 'body',
-            name: 'body',
-            description: 'Dados do usuário',
+            name: 'credentials',
             required: true,
             schema: {
-              type: 'object',
-              required: ['username', 'password', 'registrationKey'],
-              properties: {
-                username: {
-                  type: 'string',
-                  example: 'admin',
-                },
-                password: {
-                  type: 'string',
-                  example: 'senha123',
-                },
-                registrationKey: {
-                  type: 'string',
-                  example: 'chave-secreta',
-                },
-              },
+              $ref: '#/definitions/RegisterCredentials',
             },
           },
         ],
         responses: {
           201: {
             description: 'Usuário registrado com sucesso',
+            schema: {
+              $ref: '#/definitions/User',
+            },
           },
           400: {
-            description: 'Erro ao registrar usuário',
+            description: 'Dados inválidos ou usuário já existe',
           },
-          401: {
+          403: {
             description: 'Chave de registro inválida',
           },
         },
@@ -80,27 +74,16 @@ const swaggerDocument = {
     },
     '/login': {
       post: {
-        tags: ['Auth'],
-        summary: 'Autentica um usuário',
+        tags: ['Autenticação'],
+        summary: 'Autenticar usuário',
+        description: 'Autentica um usuário e retorna um token JWT',
         parameters: [
           {
             in: 'body',
-            name: 'body',
-            description: 'Credenciais do usuário',
+            name: 'credentials',
             required: true,
             schema: {
-              type: 'object',
-              required: ['username', 'password'],
-              properties: {
-                username: {
-                  type: 'string',
-                  example: 'admin',
-                },
-                password: {
-                  type: 'string',
-                  example: 'senha123',
-                },
-              },
+              $ref: '#/definitions/LoginCredentials',
             },
           },
         ],
@@ -108,12 +91,7 @@ const swaggerDocument = {
           200: {
             description: 'Login realizado com sucesso',
             schema: {
-              type: 'object',
-              properties: {
-                token: {
-                  type: 'string',
-                },
-              },
+              $ref: '#/definitions/AuthResponse',
             },
           },
           401: {
@@ -124,8 +102,9 @@ const swaggerDocument = {
     },
     '/projects': {
       get: {
-        tags: ['Projects'],
+        tags: ['Projetos'],
         summary: 'Lista todos os projetos',
+        description: 'Retorna uma lista de todos os projetos cadastrados',
         responses: {
           200: {
             description: 'Lista de projetos retornada com sucesso',
@@ -139,18 +118,18 @@ const swaggerDocument = {
         },
       },
       post: {
-        tags: ['Projects'],
+        tags: ['Projetos'],
         summary: 'Cria um novo projeto',
+        description: 'Cria um novo projeto (requer autenticação)',
         security: [
           {
-            Bearer: [],
+            bearerAuth: [],
           },
         ],
         parameters: [
           {
             in: 'body',
-            name: 'body',
-            description: 'Dados do projeto',
+            name: 'project',
             required: true,
             schema: {
               $ref: '#/definitions/ProjectInput',
@@ -165,30 +144,28 @@ const swaggerDocument = {
             },
           },
           401: {
-            description: 'Não autorizado',
-          },
-          400: {
-            description: 'Dados inválidos',
+            description: 'Não autorizado - Token ausente ou inválido',
           },
         },
       },
     },
     '/projects/{id}': {
       get: {
-        tags: ['Projects'],
-        summary: 'Busca um projeto específico',
+        tags: ['Projetos'],
+        summary: 'Obtém um projeto específico',
+        description: 'Retorna os detalhes de um projeto específico',
         parameters: [
           {
             in: 'path',
             name: 'id',
-            type: 'integer',
             required: true,
+            type: 'integer',
             description: 'ID do projeto',
           },
         ],
         responses: {
           200: {
-            description: 'Projeto encontrado',
+            description: 'Projeto encontrado com sucesso',
             schema: {
               $ref: '#/definitions/Project',
             },
@@ -199,25 +176,26 @@ const swaggerDocument = {
         },
       },
       put: {
-        tags: ['Projects'],
+        tags: ['Projetos'],
         summary: 'Atualiza um projeto',
+        description:
+          'Atualiza os dados de um projeto existente (requer autenticação)',
         security: [
           {
-            Bearer: [],
+            bearerAuth: [],
           },
         ],
         parameters: [
           {
             in: 'path',
             name: 'id',
-            type: 'integer',
             required: true,
+            type: 'integer',
             description: 'ID do projeto',
           },
           {
             in: 'body',
-            name: 'body',
-            description: 'Dados do projeto',
+            name: 'project',
             required: true,
             schema: {
               $ref: '#/definitions/ProjectInput',
@@ -232,7 +210,7 @@ const swaggerDocument = {
             },
           },
           401: {
-            description: 'Não autorizado',
+            description: 'Não autorizado - Token ausente ou inválido',
           },
           404: {
             description: 'Projeto não encontrado',
@@ -240,19 +218,20 @@ const swaggerDocument = {
         },
       },
       delete: {
-        tags: ['Projects'],
+        tags: ['Projetos'],
         summary: 'Remove um projeto',
+        description: 'Remove um projeto existente (requer autenticação)',
         security: [
           {
-            Bearer: [],
+            bearerAuth: [],
           },
         ],
         parameters: [
           {
             in: 'path',
             name: 'id',
-            type: 'integer',
             required: true,
+            type: 'integer',
             description: 'ID do projeto',
           },
         ],
@@ -261,7 +240,7 @@ const swaggerDocument = {
             description: 'Projeto removido com sucesso',
           },
           401: {
-            description: 'Não autorizado',
+            description: 'Não autorizado - Token ausente ou inválido',
           },
           404: {
             description: 'Projeto não encontrado',
@@ -280,19 +259,30 @@ const swaggerDocument = {
         },
         title: {
           type: 'string',
-          example: 'Meu Projeto',
+          example: 'Meu Projeto Incrível',
         },
         description: {
           type: 'string',
-          example: 'Descrição do projeto',
+          example: 'Uma descrição detalhada do projeto',
         },
-        image: {
+        thumbnailUrl: {
           type: 'string',
           example: 'https://exemplo.com/imagem.jpg',
         },
-        link: {
+        repositoryUrl: {
           type: 'string',
-          example: 'https://exemplo.com/projeto',
+          example: 'https://github.com/seu-usuario/projeto',
+        },
+        siteUrl: {
+          type: 'string',
+          example: 'https://seu-projeto.com',
+        },
+        technologies: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          example: ['React', 'Node.js', 'Express'],
         },
         createdAt: {
           type: 'string',
@@ -310,19 +300,97 @@ const swaggerDocument = {
       properties: {
         title: {
           type: 'string',
-          example: 'Meu Projeto',
+          example: 'Meu Projeto Incrível',
         },
         description: {
           type: 'string',
-          example: 'Descrição do projeto',
+          example: 'Uma descrição detalhada do projeto',
         },
-        image: {
+        thumbnailUrl: {
           type: 'string',
           example: 'https://exemplo.com/imagem.jpg',
         },
-        link: {
+        repositoryUrl: {
           type: 'string',
-          example: 'https://exemplo.com/projeto',
+          example: 'https://github.com/seu-usuario/projeto',
+        },
+        siteUrl: {
+          type: 'string',
+          example: 'https://seu-projeto.com',
+        },
+        technologies: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          example: ['React', 'Node.js', 'Express'],
+        },
+      },
+    },
+    User: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'integer',
+          example: 1,
+        },
+        username: {
+          type: 'string',
+          example: 'usuario123',
+        },
+        password: {
+          type: 'string',
+          example: 'senha123',
+          description: 'A senha será hasheada antes de ser armazenada',
+        },
+        createdAt: {
+          type: 'string',
+          format: 'date-time',
+        },
+        updatedAt: {
+          type: 'string',
+          format: 'date-time',
+        },
+      },
+    },
+    LoginCredentials: {
+      type: 'object',
+      required: ['username', 'password'],
+      properties: {
+        username: {
+          type: 'string',
+          example: 'usuario123',
+        },
+        password: {
+          type: 'string',
+          example: 'senha123',
+        },
+      },
+    },
+    RegisterCredentials: {
+      type: 'object',
+      required: ['username', 'password', 'registrationKey'],
+      properties: {
+        username: {
+          type: 'string',
+          example: 'usuario123',
+        },
+        password: {
+          type: 'string',
+          example: 'senha123',
+        },
+        registrationKey: {
+          type: 'string',
+          example: 'chave-secreta',
+        },
+      },
+    },
+    AuthResponse: {
+      type: 'object',
+      properties: {
+        token: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
         },
       },
     },
@@ -334,26 +402,16 @@ require('./models/Project');
 
 const app = express();
 
-// Configuração do CORS - mais permissiva para desenvolvimento
-app.use(cors());
+// Configuração do CORS - mais restritiva para produção
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*', // Idealmente, especificar a URL do frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Authorization'],
+  credentials: true,
+};
 
-// Middleware para adicionar headers de CORS manualmente
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  res.header('Access-Control-Allow-Credentials', true);
-
-  // Responder imediatamente a requisições OPTIONS
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  next();
-});
+app.use(cors(corsOptions));
 
 app.use(express.json());
 

@@ -1,41 +1,37 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../database');
 
-const Project = sequelize.define(
-  'Project',
+class Project extends Model {}
+
+Project.init(
   {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
-    thumbnailUrl: {
+    title: {
       type: DataTypes.STRING,
-      allowNull: false,
-      field: 'thumbnailUrl',
-    },
-    repositoryUrl: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'repositoryUrl',
-    },
-    siteUrl: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'siteUrl',
-    },
-    technologies: {
-      type: DataTypes.JSON,
       allowNull: false,
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    image: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    link: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
+    sequelize,
+    modelName: 'Project',
     tableName: 'projects',
     timestamps: true,
-    underscored: false,
   }
 );
 
