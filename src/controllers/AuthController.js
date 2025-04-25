@@ -18,11 +18,10 @@ module.exports = {
         return res.status(400).json({ error: 'Usuário já existe' });
       }
 
-      // Cria o usuário
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // Cria o usuário (o hash da senha é feito automaticamente pelo modelo)
       const user = await User.create({
         username,
-        password: hashedPassword,
+        password,
       });
 
       return res
@@ -43,8 +42,8 @@ module.exports = {
         return res.status(401).json({ error: 'Credenciais inválidas' });
       }
 
-      // Verifica a senha
-      const validPassword = await bcrypt.compare(password, user.password);
+      // Verifica a senha usando o método do modelo
+      const validPassword = await user.checkPassword(password);
       if (!validPassword) {
         return res.status(401).json({ error: 'Credenciais inválidas' });
       }
