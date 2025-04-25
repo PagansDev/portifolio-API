@@ -3,7 +3,7 @@ builder = "nixpacks"
 buildCommand = "npm install"
 
 [deploy]
-startCommand = "node src/test-server.js"
+startCommand = "node src/server.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"

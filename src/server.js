@@ -248,6 +248,28 @@ const swaggerDocument = {
         },
       },
     },
+    '/health': {
+      get: {
+        tags: ['Status'],
+        summary: 'Verifica o status da API',
+        responses: {
+          200: {
+            description: 'API funcionando normalmente',
+          },
+        },
+      },
+    },
+    '/': {
+      get: {
+        tags: ['Status'],
+        summary: 'Informações básicas da API',
+        responses: {
+          200: {
+            description: 'Informações sobre a API',
+          },
+        },
+      },
+    },
   },
   definitions: {
     Project: {
@@ -406,46 +428,68 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Healthcheck - deve ser a primeira rota
+// Status da aplicação
+const appStatus = {
+  ready: false,
+  database: false,
+  startTime: new Date(),
+};
+
+// Healthcheck endpoint - mantém a mesma simplicidade que funcionou
 app.get('/health', (_, res) => {
   res.status(200).send('OK');
 });
 
+// Endpoint de status mais detalhado para diagnóstico
+app.get('/status', (_, res) => {
+  res.json({
+    ...appStatus,
+    uptime: `${Math.floor((new Date() - appStatus.startTime) / 1000)}s`,
+  });
+});
+
+// Middleware para verificar se o banco está pronto
+const requireDatabase = async (req, res, next) => {
+  if (!appStatus.database) {
+    return res.status(503).json({
+      error: 'Serviço inicializando, tente novamente em alguns segundos',
+    });
+  }
+  next();
+};
+
 // Documentação Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Rotas
-app.use(routes);
+// Rotas da API - todas exceto /health e /status requerem banco de dados
+app.use('/api', requireDatabase, routes);
 
-// Variável para controlar o estado do servidor
-let isServerReady = false;
-
-// Inicialização do servidor
+// Função de inicialização do servidor
 const startServer = async () => {
+  // Inicia o servidor HTTP primeiro
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Servidor HTTP iniciado na porta ${port}`);
+    appStatus.ready = true;
+  });
+
   try {
-    const port = process.env.PORT || 3000;
-
-    // Inicia o servidor primeiro
-    const server = app.listen(port, () => {
-      console.log(`Servidor HTTP iniciado na porta ${port}`);
-    });
-
-    // Tenta conectar ao banco de dados em background
-    initializeDatabase
-      .then(() => {
-        console.log('Banco de dados conectado com sucesso');
-        isServerReady = true;
-      })
-      .catch((error) => {
-        console.error('Erro ao conectar ao banco de dados:', error.message);
-        // Não vamos derrubar o servidor se o banco falhar
-        // Deixaremos o Railway tentar novamente
-      });
+    // Tenta conectar ao banco de dados
+    console.log('Tentando conectar ao banco de dados...');
+    await initializeDatabase;
+    console.log('Conexão com banco de dados estabelecida');
+    appStatus.database = true;
   } catch (error) {
-    console.error('Erro ao iniciar servidor:', error.message);
-    process.exit(1);
+    console.error('Erro ao conectar ao banco de dados:', error.message);
+    // Não derrubamos o servidor, apenas logamos o erro
+    // O Railway vai tentar reiniciar se necessário
   }
 };
 
 // Inicia o servidor
-startServer();
+console.log('Iniciando servidor...');
+startServer().catch((error) => {
+  console.error('Erro fatal:', error);
+  // Só encerramos em caso de erro fatal na inicialização do HTTP
+  process.exit(1);
+});
