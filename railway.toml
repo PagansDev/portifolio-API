@@ -3,9 +3,9 @@ builder = "nixpacks"
 buildCommand = "npm install"
 
 [deploy]
-startCommand = "node src/server.js"
+startCommand = "node src/test-server.js"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 100
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 5
-healthcheckInterval = 30 
+restartPolicyMaxRetries = 3
+healthcheckInterval = 15 
