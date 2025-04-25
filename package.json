@@ -1,6 +1,6 @@
 {
   "name": "portfolio-api",
-  "version": "1.0.0",
+  "version": "1.1.3",
   "description": "API para gerenciamento de portfólio profissional",
   "main": "src/server.js",
   "scripts": {
