@@ -13,9 +13,11 @@ const swaggerDocument = {
     title: 'Portfolio API',
     description: 'API para gerenciamento de portfólio profissional',
   },
-  host: process.env.API_URL || 'localhost:3000',
+  host: process.env.API_URL
+    ? process.env.API_URL.replace(/^https?:\/\//, '')
+    : 'localhost:3000',
   basePath: '/',
-  schemes: ['http', 'https'],
+  schemes: ['https', 'http'],
   tags: [
     {
       name: 'Projects',
