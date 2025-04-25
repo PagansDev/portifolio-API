@@ -9,7 +9,7 @@ const sequelize = require('./config/database');
 const swaggerDocument = {
   swagger: '2.0',
   info: {
-    version: '1.0.0',
+    version: '1.1.6',
     title: 'Portfolio API',
     description: 'API para gerenciamento de portfólio profissional',
   },
