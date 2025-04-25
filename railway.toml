@@ -4,7 +4,8 @@ buildCommand = "npm install"
 
 [deploy]
 startCommand = "node src/server.js"
-healthcheckPath = "/api-docs"
-healthcheckTimeout = 100
+healthcheckPath = "/health"
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 10 
+restartPolicyMaxRetries = 5
+healthcheckInterval = 30 

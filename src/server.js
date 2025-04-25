@@ -9,7 +9,7 @@ const initializeDatabase = require('./database');
 const swaggerDocument = {
   swagger: '2.0',
   info: {
-    version: '1.2.0',
+    version: '1.2.1',
     title: 'Portfolio API',
     description: 'API para gerenciamento de portfólio profissional',
   },
@@ -406,9 +406,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Healthcheck simples
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+// Healthcheck - deve ser a primeira rota
+app.get('/health', (_, res) => {
+  res.status(200).send('OK');
 });
 
 // Documentação Swagger
@@ -417,21 +417,35 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Rotas
 app.use(routes);
 
+// Variável para controlar o estado do servidor
+let isServerReady = false;
+
 // Inicialização do servidor
 const startServer = async () => {
   try {
-    // Aguarda a inicialização do banco de dados
-    await initializeDatabase;
-
-    // Inicia o servidor
     const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-      console.log(`Servidor rodando na porta ${port}`);
+
+    // Inicia o servidor primeiro
+    const server = app.listen(port, () => {
+      console.log(`Servidor HTTP iniciado na porta ${port}`);
     });
+
+    // Tenta conectar ao banco de dados em background
+    initializeDatabase
+      .then(() => {
+        console.log('Banco de dados conectado com sucesso');
+        isServerReady = true;
+      })
+      .catch((error) => {
+        console.error('Erro ao conectar ao banco de dados:', error.message);
+        // Não vamos derrubar o servidor se o banco falhar
+        // Deixaremos o Railway tentar novamente
+      });
   } catch (error) {
     console.error('Erro ao iniciar servidor:', error.message);
     process.exit(1);
   }
 };
 
+// Inicia o servidor
 startServer();
