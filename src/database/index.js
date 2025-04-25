@@ -8,32 +8,58 @@ let sequelize;
 
 const initializeDatabase = async () => {
   try {
+    console.log('Iniciando conexão com o banco de dados...');
+    console.log('Ambiente:', env);
+
     if (!process.env[dbConfig.use_env_variable]) {
       throw new Error(
         `Variável de ambiente ${dbConfig.use_env_variable} não definida`
       );
     }
 
-    sequelize = new Sequelize(process.env[dbConfig.use_env_variable], {
+    const databaseUrl = process.env[dbConfig.use_env_variable];
+    console.log('URL do banco de dados definida:', !!databaseUrl);
+
+    sequelize = new Sequelize(databaseUrl, {
       ...dbConfig,
-      logging: console.log,
+      logging: (msg) => console.log('[Database]', msg),
       pool: {
         max: 5,
         min: 0,
-        acquire: 30000,
+        acquire: 60000, // Aumentado para 60 segundos
         idle: 10000,
       },
       retry: {
-        max: 5,
-        timeout: 3000,
+        max: 10, // Aumentado número de tentativas
+        timeout: 60000, // Timeout de 60 segundos
+        match: [
+          /SequelizeConnectionError/,
+          /SequelizeConnectionRefusedError/,
+          /SequelizeHostNotFoundError/,
+          /SequelizeHostNotReachableError/,
+          /SequelizeInvalidConnectionError/,
+          /SequelizeConnectionTimedOutError/,
+          /TimeoutError/,
+          /Operation timeout/,
+        ],
+      },
+      dialectOptions: {
+        ...dbConfig.dialectOptions,
+        connectTimeout: 60000, // Timeout de conexão de 60 segundos
       },
     });
 
+    console.log('Tentando autenticar conexão...');
     await sequelize.authenticate();
-    console.log('Conexão com o banco de dados estabelecida com sucesso.');
+    console.log('Conexão autenticada com sucesso');
+
     return sequelize;
   } catch (err) {
-    console.error('Erro ao conectar com o banco de dados:', err);
+    console.error('Erro detalhado ao conectar com o banco de dados:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
     throw err;
   }
 };

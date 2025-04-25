@@ -9,7 +9,7 @@ const initializeDatabase = require('./database');
 const swaggerDocument = {
   swagger: '2.0',
   info: {
-    version: '1.1.8',
+    version: '1.1.9',
     title: 'Portfolio API',
     description: 'API para gerenciamento de portfólio profissional',
   },
@@ -402,7 +402,7 @@ require('./models/Project');
 
 const app = express();
 
-// Configuração do CORS - mais restritiva para produção
+// Configuração do CORS
 const corsOptions = {
   origin: process.env.FRONTEND_URL || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -412,12 +412,36 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 app.use(express.json());
 
-// Healthcheck endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+let sequelizeInstance = null;
+
+// Healthcheck endpoint aprimorado
+app.get('/health', async (req, res) => {
+  console.log('Verificando health do serviço...');
+  try {
+    if (!sequelizeInstance) {
+      console.log('Instância do Sequelize não inicializada');
+      return res.status(503).json({
+        status: 'error',
+        message: 'Database connection not initialized',
+      });
+    }
+
+    await sequelizeInstance.authenticate();
+    console.log('Conexão com o banco de dados OK');
+    return res.status(200).json({
+      status: 'healthy',
+      database: 'connected',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Erro no healthcheck:', error);
+    return res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+    });
+  }
 });
 
 // Documentação Swagger
@@ -429,23 +453,33 @@ app.use(routes);
 // Função de inicialização do servidor
 const startServer = async () => {
   try {
+    console.log('Iniciando servidor...');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('DATABASE_URL definida:', !!process.env.DATABASE_URL);
+
     // Aguarda a inicialização do banco de dados
-    const sequelize = await initializeDatabase;
+    sequelizeInstance = await initializeDatabase;
     console.log('Banco de dados inicializado com sucesso');
 
     // Sincroniza os modelos com o banco de dados
-    await sequelize.sync();
+    await sequelizeInstance.sync();
     console.log('Modelos sincronizados com sucesso');
 
     // Inicia o servidor apenas após a conexão com o banco estar estabelecida
     const port = process.env.PORT || 3000;
-    app.listen(port, () => {
+    const server = app.listen(port, () => {
       console.log(`Servidor rodando na porta ${port}`);
       console.log(`Documentação disponível em: /api-docs`);
     });
+
+    // Tratamento de erros do servidor
+    server.on('error', (error) => {
+      console.error('Erro no servidor:', error);
+      process.exit(1);
+    });
   } catch (error) {
-    console.error('Erro ao iniciar o servidor:', error);
-    process.exit(1); // Encerra o processo com erro
+    console.error('Erro fatal ao iniciar o servidor:', error);
+    process.exit(1);
   }
 };
 
@@ -454,11 +488,28 @@ startServer();
 
 // Tratamento de erros não capturados
 process.on('unhandledRejection', (error) => {
-  console.error('Erro não tratado:', error);
+  console.error('Erro não tratado (Promise):', error);
   process.exit(1);
 });
 
 process.on('uncaughtException', (error) => {
   console.error('Exceção não capturada:', error);
   process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('Recebido sinal SIGTERM - Iniciando shutdown graceful');
+  if (sequelizeInstance) {
+    await sequelizeInstance.close();
+  }
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('Recebido sinal SIGINT - Iniciando shutdown graceful');
+  if (sequelizeInstance) {
+    await sequelizeInstance.close();
+  }
+  process.exit(0);
 });
