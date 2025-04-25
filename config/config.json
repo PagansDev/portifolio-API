@@ -3,13 +3,10 @@
     "use_env_variable": "DATABASE_URL",
     "dialect": "mysql",
     "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
+      "ssl": false
     },
     "pool": {
-      "max": 5,
+      "max": 2,
       "min": 0,
       "acquire": 30000,
       "idle": 10000
@@ -19,13 +16,10 @@
     "use_env_variable": "DATABASE_URL",
     "dialect": "mysql",
     "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
+      "ssl": false
     },
     "pool": {
-      "max": 5,
+      "max": 2,
       "min": 0,
       "acquire": 30000,
       "idle": 10000
@@ -35,13 +29,10 @@
     "use_env_variable": "DATABASE_URL",
     "dialect": "mysql",
     "dialectOptions": {
-      "ssl": {
-        "require": true,
-        "rejectUnauthorized": false
-      }
+      "ssl": false
     },
     "pool": {
-      "max": 5,
+      "max": 2,
       "min": 0,
       "acquire": 30000,
       "idle": 10000

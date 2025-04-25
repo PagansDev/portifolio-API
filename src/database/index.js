@@ -4,61 +4,38 @@ const config = require('../config/config.json');
 const env = process.env.NODE_ENV || 'development';
 const dbConfig = config[env];
 
-let sequelize;
-
 const initializeDatabase = async () => {
   try {
     console.log('Iniciando conexão com o banco de dados...');
-    console.log('Ambiente:', env);
 
-    if (!process.env[dbConfig.use_env_variable]) {
-      throw new Error(
-        `Variável de ambiente ${dbConfig.use_env_variable} não definida`
-      );
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL não está definida');
     }
 
-    const databaseUrl = process.env[dbConfig.use_env_variable];
-    console.log('URL do banco de dados definida:', !!databaseUrl);
-
-    sequelize = new Sequelize(databaseUrl, {
-      ...dbConfig,
-      logging: (msg) => console.log('[Database]', msg),
+    const sequelize = new Sequelize(process.env.DATABASE_URL, {
+      dialect: 'mysql',
+      dialectOptions: {
+        ssl: false,
+      },
       pool: {
-        max: 5,
+        max: 2,
         min: 0,
-        acquire: 60000, // Aumentado para 60 segundos
+        acquire: 30000,
         idle: 10000,
       },
-      retry: {
-        max: 10, // Aumentado número de tentativas
-        timeout: 60000, // Timeout de 60 segundos
-        match: [
-          /SequelizeConnectionError/,
-          /SequelizeConnectionRefusedError/,
-          /SequelizeHostNotFoundError/,
-          /SequelizeHostNotReachableError/,
-          /SequelizeInvalidConnectionError/,
-          /SequelizeConnectionTimedOutError/,
-          /TimeoutError/,
-          /Operation timeout/,
-        ],
-      },
-      dialectOptions: {
-        ...dbConfig.dialectOptions,
-        connectTimeout: 60000, // Timeout de conexão de 60 segundos
-      },
+      logging: false,
     });
 
-    console.log('Tentando autenticar conexão...');
-    await sequelize.authenticate();
-    console.log('Conexão autenticada com sucesso');
+    // Teste simples de conexão
+    await sequelize.query('SELECT 1+1 as result');
+    console.log('Conexão com o banco de dados estabelecida com sucesso');
 
     return sequelize;
   } catch (err) {
-    console.error('Erro detalhado ao conectar com o banco de dados:', {
+    console.error('Erro ao conectar com o banco de dados:', {
       message: err.message,
-      name: err.name,
-      stack: err.stack,
+      code: err.original?.code,
+      errno: err.original?.errno,
     });
     throw err;
   }
