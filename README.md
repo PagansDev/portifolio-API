@@ -10,7 +10,7 @@ Essa API irá prover URLs para a miniatura do projeto (suba sua miniatura em alg
 
 Com a aplicação rodando, basta consumi-la no front-end com seus componentes dinâmicos e popular seu portfólio.
 
-## Tecnologias Utilizadas
+## Tecnologias
 
 -   Laravel 11
 -   MySQL
