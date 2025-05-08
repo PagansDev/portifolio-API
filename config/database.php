@@ -44,13 +44,13 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
-            'unix_socket' => env('DB_SOCKET', ''),
+            'url' => env('DATABASE_URL'),
+            'host' => env('DATABASE_HOST', parse_url(env('DATABASE_URL'), PHP_URL_HOST)),
+            'port' => env('DATABASE_PORT', parse_url(env('DATABASE_URL'), PHP_URL_PORT)),
+            'database' => env('DATABASE_NAME', ltrim(parse_url(env('DATABASE_URL'), PHP_URL_PATH), '/')),
+            'username' => env('DATABASE_USER', parse_url(env('DATABASE_URL'), PHP_URL_USER)),
+            'password' => env('DATABASE_PASSWORD', parse_url(env('DATABASE_URL'), PHP_URL_PASS)),
+            'unix_socket' => env('DATABASE_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
@@ -147,7 +147,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 

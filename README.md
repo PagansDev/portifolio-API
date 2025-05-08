@@ -20,7 +20,9 @@ Com a aplicação rodando, basta consumi-la no front-end com seus componentes di
 
 ### Variáveis de Ambiente
 
-O projeto utiliza as seguintes variáveis de ambiente (exemplo para `.env`):
+O projeto pode ser configurado de duas formas:
+
+#### **1. Ambiente Local (usando variáveis separadas)**
 
 ```
 APP_KEY= # Gere com php artisan key:generate --show
@@ -28,7 +30,7 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://<seu-projeto>.up.railway.app
 DB_CONNECTION=mysql
-DB_HOST=<host do Railway>
+DB_HOST=<host do banco>
 DB_PORT=3306
 DB_DATABASE=<nome do banco>
 DB_USERNAME=<usuário do banco>
@@ -36,6 +38,22 @@ DB_PASSWORD=<senha do banco>
 SANCTUM_STATEFUL_DOMAINS=localhost,127.0.0.1
 SESSION_DRIVER=cookie
 ```
+
+#### **2. Deploy Railway (usando DATABASE_URL)**
+
+No painel da Railway, basta adicionar:
+
+```
+DATABASE_URL=mysql://usuario:senha@host:porta/banco
+APP_KEY= # Gere localmente com php artisan key:generate --show
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://<seu-projeto>.up.railway.app
+SANCTUM_STATEFUL_DOMAINS=localhost,127.0.0.1
+SESSION_DRIVER=cookie
+```
+
+> O arquivo `config/database.php` já está preparado para ler e parsear a variável `DATABASE_URL` automaticamente, não sendo necessário definir DB_HOST, DB_DATABASE, etc, separadamente na Railway.
 
 ## 🔧 Instalação Local
 
@@ -75,9 +93,9 @@ php artisan serve
 1. Faça login na sua conta do Railway
 2. Crie um novo projeto
 3. Adicione um serviço MySQL
-4. No serviço MySQL, clique em "Connect" e copie as variáveis de conexão
+4. No serviço MySQL, clique em "Connect" e copie a variável `DATABASE_URL`
 5. Conecte seu repositório GitHub ao projeto
-6. No seu projeto, adicione as variáveis de ambiente do `.env` no painel da Railway
+6. No seu projeto, adicione as variáveis de ambiente do `.env` no painel da Railway (incluindo `DATABASE_URL` e `APP_KEY`)
 7. Crie um arquivo `Procfile` com:
     ```
     web: php artisan serve --host=0.0.0.0 --port=8080
